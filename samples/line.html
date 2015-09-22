@@ -7,7 +7,7 @@
 	<body>
 		<div style="width:30%">
 			<div>
-				<canvas id="canvas" height="450" width="600"></canvas>
+				<canvas id="canvas" height="400" width="600"></canvas>
 			</div>
 		</div>
 
@@ -15,7 +15,8 @@
 	<script>
 		var randomScalingFactor = function(){ return Math.round(Math.random()*100)};
 		var lineChartData = {
-			labels : ["January","February","March","April","May","June","July"],
+			labels : ["Day 1","Day 5","Day 6","Day 7","Day 15","Day 27","Day 30"],
+			scaleSteps : [0,5,6,7,15,27,30],
 			datasets : [
 				{
 					label: "My First dataset",
@@ -44,7 +45,10 @@
 	window.onload = function(){
 		var ctx = document.getElementById("canvas").getContext("2d");
 		window.myLine = new Chart(ctx).Line(lineChartData, {
-			responsive: true
+			responsive: true,
+			animation: false,
+			bezierCurve: true,
+			bezierCurveTension: 0.2
 		});
 	}
 

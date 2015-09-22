@@ -1648,6 +1648,12 @@
 				this.xLabelWidth = originalLabelWidth;
 				//Allow 3 pixels x2 padding either side for label readability
 				var xGridWidth = Math.floor(this.calculateX(1) - this.calculateX(0)) - 6;
+				// find the minimal distance of two entries
+				for (var i = 1; i < this.xLabels.length; i++) {
+					if (xGridWidth > Math.floor(this.calculateX(i) - this.calculateX(i-1)) - 6) {
+						xGridWidth = Math.floor(this.calculateX(i) - this.calculateX(i-1)) - 6;
+					}
+				}
 
 				//Max label rotate should be 90 - also act as a loop counter
 				while ((this.xLabelWidth > xGridWidth && this.xLabelRotation === 0) || (this.xLabelWidth > xGridWidth && this.xLabelRotation <= 90 && this.xLabelRotation > 0)){
@@ -1694,6 +1700,16 @@
 				innerWidth = this.width - (this.xScalePaddingLeft + this.xScalePaddingRight),
 				valueWidth = innerWidth/Math.max((this.valuesCount - ((this.offsetGridLines) ? 0 : 1)), 1),
 				valueOffset = (valueWidth * index) + this.xScalePaddingLeft;
+
+			// if we have scaleSteps we have to calculate the positions in an other way
+			if ((this.xScaleSteps !== 'undefined') &&
+				  (this.xScaleSteps !== null) &&
+				  (this.xScaleSteps.length > 0)) {
+				var xssMin = this.xScaleSteps[0];
+				var xssMax = this.xScaleSteps[this.xScaleSteps.length-1]+1;
+				valueWidth = innerWidth/Math.max((xssMax-xssMin - ((this.offsetGridLines) ? 0 : 1)), 1);
+				valueOffset = (valueWidth * (this.xScaleSteps[index]-xssMin)) + this.xScalePaddingLeft;
+			}
 
 			if (this.offsetGridLines){
 				valueOffset += (valueWidth/2);
@@ -1761,8 +1777,10 @@
 
 				},this);
 
+				var xPosLast = null;
 				each(this.xLabels,function(label,index){
 					var xPos = this.calculateX(index) + aliasPixel(this.lineWidth),
+						xPosEnd = this.calculateX(this.xLabels.length-1) + aliasPixel(this.lineWidth),
 						// Check to see if line/bar here and decide where to place the line
 						linePos = this.calculateX(index - (this.offsetGridLines ? 0.5 : 0)) + aliasPixel(this.lineWidth),
 						isRotated = (this.xLabelRotation > 0),
@@ -1812,7 +1830,11 @@
 					ctx.font = this.font;
 					ctx.textAlign = (isRotated) ? "right" : "center";
 					ctx.textBaseline = (isRotated) ? "middle" : "top";
-					ctx.fillText(label, 0, 0);
+					if ((xPosLast === null || xPos - xPosLast > this.fontSize) && 
+						  (index == this.xLabels.length-1 || xPosEnd-xPos > this.fontSize)){
+						ctx.fillText(label, 0, 0);
+						xPosLast = xPos;
+					}
 					ctx.restore();
 				},this);
 
